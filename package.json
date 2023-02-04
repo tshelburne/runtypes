@@ -1,6 +1,6 @@
 {
   "name": "runtypes",
-  "version": "6.4.0",
+  "version": "6.6.0",
   "description": "Runtime validation for static types",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -11,7 +11,8 @@
   "scripts": {
     "build": "tsc --pretty --project ./tsconfig.build.json",
     "format": "node scripts/format.js",
-    "test": "jest $([ \"$CI\" = true ] && echo --coverage || echo --watch)",
+    "test": "jest",
+    "test:ci": "CI=true jest --coverage --reporters=default --reporters=jest-github-actions-reporter",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
     "typecheck": "tsc --noEmit --watch",
     "prepare": "npm run build"
@@ -22,9 +23,11 @@
     "@types/jest": "26.0.22",
     "coveralls": "^3.1.0",
     "jest": "26.6.3",
+    "jest-github-actions-reporter": "^1.0.3",
+    "outdent": "^0.8.0",
     "prettier": "^2.2.1",
     "ts-jest": "^26.5.4",
-    "typescript": "4.2.3"
+    "typescript": "4.5.2"
   },
   "keywords:": [
     "runtime",
@@ -48,5 +51,6 @@
     },
     "testEnvironment": "node"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "packageManager": "yarn@1.22.19"
 }

@@ -112,6 +112,17 @@ const spaceObject = SpaceObject.check(obj);
 
 If the object doesn't conform to the type specification, `check` will throw an exception.
 
+## Error information
+
+When it fails to validate, your runtype emits a `ValidationError` object that contains detailed information that describes what's the problem. Following properties are available in the object:
+
+- `name`: Always `"ValidationError"`
+- `message`: A `string` that summarizes the problem overall
+- `code`: A [`Failcode`](https://github.com/pelotom/runtypes/blob/dcd4fe0d0bd0fc9c3ec445bda30586f3e6acc71c/src/result.ts#L12-L33) that categorizes the problem
+- `details`: An object that describes which property was invalid precisely; only for complex runtypes (e.g. `Record`, `Array`, and the like)
+
+If you want to inform your users about the validation error, it's strongly discouraged to rely on the format of `message` property in your code, as it may change across minor versions for readability thoughts. Instead of parsing `message`, you should use `code` and/or `details` property to programmatically inspect the validation error, and handle other stuff such as i18n.
+
 ## Static type inference
 
 In TypeScript, the inferred type of `Asteroid` in the above example is
@@ -177,13 +188,13 @@ if (isHabitable(spaceObject)) {
 }
 ```
 
-There's also a top-level `match` function which allows testing an ad-hoc sequence of runtypes:
+There's also a top-level `match` function which allows testing an ad-hoc sequence of runtypes. You should use it along with `when` helper function to enable type inference of the parameters of the case functions:
 
 ```ts
 const makeANumber = match(
-  [Number, n => n * 3],
-  [Boolean, b => (b ? 1 : 0)],
-  [String, s => s.length],
+  when(Number, n => n * 3),
+  when(Boolean, b => (b ? 1 : 0)),
+  when(String, s => s.length),
 );
 
 makeANumber(9); // = 27
@@ -193,10 +204,10 @@ To allow the function to be applied to anything and then handle match failures, 
 
 ```ts
 const makeANumber = match(
-  [Number, n => n * 3],
-  [Boolean, b => (b ? 1 : 0)],
-  [String, s => s.length],
-  [Unknown, () => 42],
+  when(Number, n => n * 3),
+  when(Boolean, b => (b ? 1 : 0)),
+  when(String, s => s.length),
+  when(Unknown, () => 42),
 );
 ```
 
@@ -341,6 +352,16 @@ Template(UpperCaseString, LowerCaseString);
 ```
 
 The only thing we can do for parsing such strings correctly is brute-forcing every single possible combination until it fulfills all the constraints, which must be hardly done. Actually `Template` treats `String` runtypes as the simplest `RegExp` pattern `.*` and the “greedy” strategy is always used, that is, the above runtype won't work expectedly because the entire pattern is just `^(.*)(.*)$` and the first `.*` always wins. You have to avoid using `Constraint` this way, and instead manually parse it using a single `Constraint` which covers the entire string.
+
+## `instanceof` wrapper
+
+If you have access to the class that you want to test values with the `instanceof` operator, then the `InstanceOf` runtype is exactly what you're looking for. Usage is straightforward:
+
+```ts
+class ObjectId { ... };
+const ObjectIdChecker = InstanceOf(ObjectId);
+ObjectIdChecker.check(value);
+```
 
 ## Function contracts
 
@@ -537,3 +558,4 @@ const WrongMember = CrewMember.extend({
 - [rest.ts](https://github.com/hmil/rest.ts) Allows building type safe and runtime-checked APIs
 - [runtypes-generate](https://github.com/typeetfunc/runtypes-generate) Generates random data by `Runtype` for property-based testing
 - [runtyping](https://github.com/johngeorgewright/runtyping) Generate runtypes from static types & JSON schema
+- [schemart](https://github.com/codemariner/schemart) Generate runtypes from your database schema.
